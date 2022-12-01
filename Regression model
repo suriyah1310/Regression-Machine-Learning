@@ -1,0 +1,113 @@
+
+
+## Outline
+
+The aim of this lab exercise is to start to get familar with a minimal, but typical, practical machine learning regression pipeline. As with the aspects of classification that we have covered, this includes:
+
+* X-y split (i.e., obtaining and providing algorithms with both set of predictors (X) and the target (y)
+* train-test split (i.e., have separate portions of the dataset for both training and estimation of its performance over unseen data).
+* configure and fit models.
+* evaluate score/loss of models.
+* optionally, at this stage, drill down on the performance of the model by looking at, for example, an actual vs predicted plot.
+
+The notebook demonstrates how the above can be achieved on the Advertising dataset introduced in this week's lecture. As tasks for you, my suggestions are:
+
+* try different model configurations
+* record the performance of those configurations into a table (i.e., DataFrame)
+* observe the loss on both train and test for those configurations - anything that can be said about the under/overfitting spectrum?
+* optionally, apply it to a different dataset such as the [Wine Quality](https://archive.ics.uci.edu/ml/datasets/wine+Quality). Some documentation can be found in its [Kaggle area](https://www.kaggle.com/datasets/rajyellow46/wine-quality). The aim here is to predict the wine quality, a value between 0 and 10, that is being framed as a regression problem. 
+
+## Preamble
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+%config InlineBackend.figure_format='retina'
+sns.set(
+    rc={ "figure.figsize": (10,8) },
+    style="ticks", context="notebook", font_scale=1.2
+)
+
+## Data Loading and Inspection
+
+advert = pd.read_csv(
+    'https://raw.githubusercontent.com/gerberl/6g7v0015-2223/main/datasets/Advertising.csv',
+    index_col=0
+)
+advert.head()
+
+A quick reminder of the features and scales:
+
+> The Advertising data set.. sales, in thousands of units, as a function of TV, radio, and newspaper budgets, in thousands of dollars, for 200 different markets.[^1]
+
+[^1]: ISLR2 book (https://www.statlearning.com/).
+
+sns.jointplot(data=advert, x='TV', y='sales', alpha=0.5)
+
+sns.jointplot(data=advert, x='radio', y='sales', alpha=0.5);
+
+## Preparing for Machine Learning
+
+X = advert.drop(columns='sales')
+y = advert['sales']
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+X_train.shape, y_train.shape
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+## kNN Regressors
+
+from sklearn.neighbors import KNeighborsRegressor
+
+### Configure and Fit
+
+knn = KNeighborsRegressor(7)
+knn.fit(X_train, y_train)
+
+### Evaluate
+
+
+mean_absolute_error(knn.predict(X_test), y_test)
+
+mean_absolute_error(knn.predict(X_train), y_train)
+
+### Analyse
+
+y_true = y
+y_pred = knn.predict(X)
+ax = sns.scatterplot(x=y_true, y=y_pred, alpha=0.5)
+ax.set_xlabel('Actual Target Value')
+ax.set_ylabel('Predicted Target Value')
+ax.set_xlim(5, 25)
+ax.set_ylim(5, 25)
+ax.plot((5, 25), (5, 25), ':k', alpha=0.3, lw=1);
+
+## Decision Tree Regressor
+
+from sklearn.tree import DecisionTreeRegressor
+
+### Configure and Fit
+
+dt = DecisionTreeRegressor(max_depth=5)
+dt.fit(X_train, y_train)
+
+### Evaluate
+
+
+mean_absolute_error(dt.predict(X_test), y_test)
+
+mean_absolute_error(dt.predict(X_train), y_train)
+
+### Analyse
+
+y_true = y
+y_pred = dt.predict(X)
+ax = sns.scatterplot(x=y_true, y=y_pred, alpha=0.5)
+ax.set_xlabel('Actual Target Value')
+ax.set_ylabel('Predicted Target Value')
+ax.set_xlim(5, 25)
+ax.set_ylim(5, 25)
+ax.plot((5, 25), (5, 25), ':k', alpha=0.3, lw=1);
